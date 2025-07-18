@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChartMogul | Mohammad Sedigh Ahmadi for Sr Full Stack Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+        }
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+        h1, h2, h3 {
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.75em;
+        }
+        h1 {
+            font-size: 1.875rem; /* 30px */
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        h2 {
+            font-size: 1.5rem; /* 24px */
+        }
+        h3 {
+            font-size: 1.25rem; /* 20px */
+        }
+        pre {
+            background-color: #1f2937; /* gray-800 */
+            color: #f3f4f6; /* gray-100 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-size: 0.875rem; /* 14px */
+        }
+        code {
+            font-family: 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace;
+        }
+        .container {
+            max-width: 8.5in;
+            margin: auto;
+            padding: 1in;
+        }
+        img {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .header-main {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header-main h1 {
+            border-bottom: none;
+            font-size: 2.25rem; /* 36px */
+        }
+        .header-main p {
+            font-size: 1.25rem; /* 20px */
+            color: #4b5563; /* gray-600 */
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+
+    <div class="container">
+        <!-- Main Header -->
+        <header class="header-main">
+            <h1>ChartMogul</h1>
+            <p>Mohammad Sedigh Ahmadi for Sr Full Stack Engineer</p>
+        </header>
+
+        <!-- System Design Section -->
+        <section>
+            <h2>System Design</h2>
+            <p>Below is the system architecture diagram illustrating the data flow from ingestion to metric generation, followed by the Entity Relationship Model (ERM) diagram for the database schema.</p>
+            
+            <h3>System Architecture Diagram</h3>
+            <!-- Placeholder for the first link. Replace src with your screenshot. -->
+            <img src="https://placehold.co/1200x800/e2e8f0/4a5568?text=Placeholder%3A+System+Architecture+Diagram%0A(ahmadi.dev/chartmogul)" alt="System Architecture Diagram">
+
+            <h3 class="page-break">Entity Relationship Model (ERM) Diagram</h3>
+            <!-- Placeholder for the second link. Replace src with your screenshot. -->
+            <img src="https://placehold.co/1200x800/e2e8f0/4a5568?text=Placeholder%3A+ERM+Diagram%0A(mohamadahmadidev.github.io/erm_chartmogul)" alt="ERM Diagram">
+        </section>
+
+        <!-- Personal Experiences Section -->
+        <section class="page-break">
+            <h2>Personal Experiences</h2>
+            
+            <h3>Important feature launch: Time Tracking Regulation Launch at Taxmaro</h3>
+            <p>When time tracking regulations were about to become mandatory, we saw an opportunity to gain a major competitive advantage. At Taxmaro, we decided to integrate this as a built-in feature before any public announcement was made. I worked closely with our CEO, discussing the potential market impact and the importance of being first. The challenge was that the regulation details weren’t public yet, so we had to work based on assumptions and scattered insights. It was risky, but we knew that shipping early would put us ahead, even if it meant technical debt in the short term.</p>
+            <p>Since we didn’t fully understand the regulation domain, designing a robust architecture upfront wasn’t realistic. Still, speed mattered more than perfect structure at this stage. With only four developers on the team—and ongoing responsibilities for other features—we made a conscious decision to move fast. It required intense collaboration across teams and some serious overwork, but in the end, we were the first HR tool to offer built-in time tracking compliance. That helped us land key investors and brought in a strong wave of customers, validating our approach.</p>
+            <p>After the initial success and with more breathing room, we came back to the codebase and refactored it for maintainability and long-term support. We restructured the core parts using best practices and solidified our understanding of the regulatory landscape. Looking back, it was a textbook case of choosing product impact over engineering perfection—and it paid off. We took a calculated risk, worked hard to deliver fast, and it turned out to be one of the smartest strategic moves for the company during that stage.</p>
+
+            <h3>Inter-team Project: DATEV Integration at Taxmaro</h3>
+            <p>During our integration with DATEV at Taxmaro, we aimed to automate the way accountants processed payroll data. Previously, we provided CSV exports from our HR system, which accountants then manually imported into DATEV—a process that was slow, error-prone, and frustrating. When DATEV released early-stage sandbox APIs, we jumped on the opportunity to improve this experience. Even though these APIs were under development and not fully released, we knew the potential benefit for our users was huge.</p>
+            <p>However, the challenges were intense. The API documentation was unreliable, endpoints were frequently changing, and not all required functionality was available. Many APIs were asynchronous, and the initial refresh tokens expired too quickly to be practical. Our early calls constantly failed with vague errors. To overcome this, we manually explored the APIs using Postman to identify correct payloads and hidden requirements. We eventually built our own internal documentation and even created a custom Ruby gem to encapsulate interactions with DATEV cleanly. We also implemented a robust logging system to capture detailed request/response data for debugging.</p>
+            <p>Due to data privacy regulations, we couldn’t directly access the DATEV app, which meant testing required close coordination with accountants—and sometimes even our CEO—to verify results. I owned this project end-to-end: communicating with DATEV’s developers, writing and testing the integration, defining and splitting tickets, and collaborating with frontend developers to ensure a smooth user experience. It was especially challenging given the sensitivity of payroll data in Germany, where even a small error can have serious consequences. Despite all this, we delivered a system that significantly reduced the burden on our users and made our product far more attractive to accounting teams.</p>
+        </section>
+        
+        <!-- Programming Task Section -->
+        <section class="page-break">
+            <h2>Programming Task: Fixing an issue with customer metadata</h2>
+            
+            <h3>Refactored Ruby Code</h3>
+            <p>The original code was refactored into a dedicated builder class (`CustomerMetadataBuilder`) to improve separation of concerns, readability, and testability. This approach encapsulates the logic for building the metadata hash, making the `custom_params` method clean and concise.</p>
+<pre><code># class CustomerMetadataBuilder
+class CustomerMetadataBuilder
+  # Define metadata keys as constants for easy reference and maintainability
+  # This allows us to change the keys in one place if needed, without affecting the rest of the code.
+  # And avoids typo errors in string literals throughout the code.
+
+  METADATA_KEYS = {
+    account_owner: 'Account owner',
+    account_status: 'Account status',
+    active_customers: 'Active customers',
+    billing_systems: 'Billing system(s)',
+    import_status: 'Import status',
+    last_active: 'Last active',
+    revenue_recognition: 'Revenue recognition access',
+    sample_data: 'Sample Data Present?'
+  }.freeze
+
+  def initialize(account)
+    @account = account
+  end
+
+  def call
+    # using compact to remove any nil values.
+    # This is a standard Ruby method and is more explicit than `reject`.
+    {
+      METADATA_KEYS[:account_owner] => account_owner_info,
+      METADATA_KEYS[:account_status] => account_status,
+      METADATA_KEYS[:active_customers] => active_customer_count,
+      METADATA_KEYS[:billing_systems] => billing_systems,
+      METADATA_KEYS[:import_status] => import_status,
+      METADATA_KEYS[:last_active] => last_active,
+      METADATA_KEYS[:revenue_recognition] => revenue_recognition_enabled?,
+      METADATA_KEYS[:sample_data] => sample_data_present?
+    }.compact
+  end
+
+private
+
+  attr_reader :account
+
+  def account_owner_info
+    # Using compact_blank (a Rails helper) to handle nil or empty strings gracefully.
+    [owner&.name, owner&.email].compact_blank.join(' ')
+  end
+
+  def account_status
+    account_details&.account_status
+  end
+
+  def active_customer_count
+    account_details&.active_customer_count
+  end
+
+  def billing_systems
+    # .presence is a Rails helper that returns the object if it's present, otherwise nil.
+    # This is cleaner than checking for presence explicitly.
+    billing_connectors.presence || ['None configured']
+  end
+
+  def import_status
+    status = main_connector&.import_status
+    status&.humanize || 'Never imported'
+  end
+
+  def last_active
+    account.last_active_at
+  end
+
+  def revenue_recognition_enabled?
+    account.rev_rec_enabled?
+  end
+
+  def sample_data_present?
+    account.sample_data_present?
+  end
+
+  def owner
+    account&.owner
+  end
+
+  def account_details
+    account.account_details
+  end
+
+  def billing_connectors
+    account.billing_connectors
+  end
+
+  def main_connector
+    account.main_connector
+  end
+end
+
+# The original method now becomes a simple call to the builder.
+def custom_params
+  CustomerMetadataBuilder.new(@account).call
+end
+</code></pre>
+
+            <h3 class="page-break">RSpec Tests</h3>
+            <p>Comprehensive tests for the `CustomerMetadataBuilder` class ensure its correctness and cover various edge cases, such as the presence or absence of data.</p>
+<pre><code># spec/services/customer_metadata_builder_spec.rb
+require 'rails_helper'
+
+RSpec.describe CustomerMetadataBuilder do
+  let(:account) { double('Account') }
+  let(:owner) { double('Owner', name: 'John Doe', email: 'john@example.com') }
+  let(:account_details) { double('AccountDetails') }
+  let(:billing_connectors) { %w(Stripe PayPal) }
+  let(:main_connector) { double('MainConnector') }
+  let(:import_status) { double('ImportStatus') }
+
+  let(:builder) { described_class.new(account) }
+
+  before do
+    # Stubbing ActiveSupport's `compact_blank` for non-Rails environments if needed.
+    # For this test, we assume a Rails environment where it is available.
+    allow_any_instance_of(Array).to receive(:compact_blank) { |arr| arr.reject { |item| item.blank? } }
+
+    allow(account).to receive(:owner).and_return(owner)
+    allow(account).to receive(:account_details).and_return(account_details)
+    allow(account).to receive(:billing_connectors).and_return(billing_connectors)
+    allow(account).to receive(:main_connector).and_return(main_connector)
+    allow(account).to receive(:last_active_at).and_return(Time.current)
+    allow(account).to receive(:rev_rec_enabled?).and_return(true)
+    allow(account).to receive(:sample_data_present?).and_return(false)
+
+    allow(account_details).to receive(:account_status).and_return('active')
+    allow(account_details).to receive(:active_customer_count).and_return(42)
+
+    allow(main_connector).to receive(:import_status).and_return(import_status)
+    allow(import_status).to receive(:humanize).and_return('Completed')
+  end
+
+  describe '#call' do
+    it 'returns a hash with all metadata' do
+      result = builder.call
+
+      expect(result).to be_a(Hash)
+      expect(result.keys).to contain_exactly(
+        'Account owner',
+        'Account status',
+        'Active customers',
+        'Billing system(s)',
+        'Import status',
+        'Last active',
+        'Revenue recognition access',
+        'Sample Data Present?'
+      )
+    end
+
+    it 'excludes nil values from the result' do
+      allow(account_details).to receive(:account_status).and_return(nil)
+      allow(account).to receive(:last_active_at).and_return(nil)
+
+      result = builder.call
+
+      expect(result).not_to have_key('Account status')
+      expect(result).not_to have_key('Last active')
+      expect(result).to have_key('Account owner')
+    end
+    
+    it 'handles a completely nil account gracefully' do
+        minimal_account = double('Account',
+            owner: nil,
+            account_details: nil,
+            billing_connectors: nil,
+            main_connector: nil,
+            last_active_at: nil,
+            rev_rec_enabled?: false,
+            sample_data_present?: false
+        )
+        minimal_builder = described_class.new(minimal_account)
+        
+        result = minimal_builder.call
+
+        expect(result).to eq({
+            'Account owner' => '',
+            'Billing system(s)' => ['None configured'],
+            'Import status' => 'Never imported',
+            'Revenue recognition access' => false,
+            'Sample Data Present?' => false
+        })
+    end
+  end
+
+  describe 'private methods' do
+    context '#account_owner_info' do
+      it 'returns formatted owner info when present' do
+        expect(builder.send(:account_owner_info)).to eq('John Doe john@example.com')
+      end
+
+      it 'returns an empty string when owner is nil' do
+        allow(account).to receive(:owner).and_return(nil)
+        expect(builder.send(:account_owner_info)).to eq('')
+      end
+
+      it 'returns only name when email is blank' do
+        allow(owner).to receive(:email).and_return('')
+        expect(builder.send(:account_owner_info)).to eq('John Doe')
+      end
+    end
+
+    context '#billing_systems' do
+      it 'returns connectors when present' do
+        expect(builder.send(:billing_systems)).to eq(%w(Stripe PayPal))
+      end
+
+      it 'returns default message when connectors are empty' do
+        allow(account).to receive(:billing_connectors).and_return([])
+        expect(builder.send(:billing_systems)).to eq(['None configured'])
+      end
+    end
+
+    context '#import_status' do
+      it 'returns humanized status when present' do
+        expect(builder.send(:import_status)).to eq('Completed')
+      end
+
+      it 'returns default message when connector is nil' do
+        allow(account).to receive(:main_connector).and_return(nil)
+        expect(builder.send(:import_status)).to eq('Never imported')
+      end
+    end
+  end
+end
+```</pre>
+        </section>
+
+    </div>
+</body>
+</html>
+
