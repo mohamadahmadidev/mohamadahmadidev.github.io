@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Metrics System - ERM Diagram</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .diagram-container {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin: 20px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .table:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 1.3em;
+            text-align: center;
+            position: relative;
+        }
+        
+        .table-header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #764ba2;
+        }
+        
+        .table-content {
+            padding: 0;
+        }
+        
+        .field {
+            padding: 12px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .field:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .field:last-child {
+            border-bottom: none;
+        }
+        
+        .field-name {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-right: 10px;
+        }
+        
+        .field-type {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: auto;
+        }
+        
+        .field-type.primary {
+            background: #27ae60;
+        }
+        
+        .field-type.foreign {
+            background: #f39c12;
+        }
+        
+        .field-type.regular {
+            background: #95a5a6;
+        }
+        
+        .relationships {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 40px 0;
+        }
+        
+        .relationship {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 25px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+        
+        .relationship:hover {
+            transform: scale(1.05);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .legend {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .legend h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.6s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .notes {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px;
+            color: #856404;
+        }
+        
+        .notes h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SaaS Metrics System</h1>
+            <p>Entity Relationship Model - Provider-Specific Architecture</p>
+        </div>
+        
+        <div class="diagram-container">
+            <div class="legend">
+                <h3>Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60;"></div>
+                    <span>Primary Key (PK)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span>Foreign Key (FK)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95a5a6;"></div>
+                    <span>Regular Field</span>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="table fade-in">
+                    <div class="table-header">CUSTOMERS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">company_name</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">email</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">updated_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table fade-in">
+                    <div class="table-header">PAYMENT_PROVIDERS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">customer_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_name</span>
+                            <span class="field-type regular">ENUM</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_account_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">api_credentials</span>
+                            <span class="field-type regular">JSON</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">is_active</span>
+                            <span class="field-type regular">BOOLEAN</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationships">
+                <div class="relationship">CUSTOMERS (1:N) PAYMENT_PROVIDERS</div>
+            </div>
+            
+            <div class="grid">
+                <div class="table fade-in">
+                    <div class="table-header">STRIPE_RAW_TRANSACTIONS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">stripe_event_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">stripe_event_type</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">raw_stripe_data</span>
+                            <span class="field-type regular">JSON</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">processed</span>
+                            <span class="field-type regular">BOOLEAN</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table fade-in">
+                    <div class="table-header">PAYPAL_RAW_TRANSACTIONS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">paypal_transaction_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">paypal_event_type</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">raw_paypal_data</span>
+                            <span class="field-type regular">JSON</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">processed</span>
+                            <span class="field-type regular">BOOLEAN</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table fade-in">
+                    <div class="table-header">SQUARE_RAW_TRANSACTIONS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">square_payment_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">square_event_type</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">raw_square_data</span>
+                            <span class="field-type regular">JSON</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">processed</span>
+                            <span class="field-type regular">BOOLEAN</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationships">
+                <div class="relationship">PAYMENT_PROVIDERS (1:N) STRIPE_RAW</div>
+                <div class="relationship">PAYMENT_PROVIDERS (1:N) PAYPAL_RAW</div>
+                <div class="relationship">PAYMENT_PROVIDERS (1:N) SQUARE_RAW</div>
+            </div>
+            
+            <div class="grid">
+                <div class="table fade-in">
+                    <div class="table-header">NORMALIZED_TRANSACTIONS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">customer_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">source_table</span>
+                            <span class="field-type regular">ENUM</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">source_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">transaction_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">amount</span>
+                            <span class="field-type regular">DECIMAL</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">currency</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">transaction_type</span>
+                            <span class="field-type regular">ENUM</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">subscription_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">customer_email</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">transaction_date</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table fade-in">
+                    <div class="table-header">SUBSCRIPTIONS</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">customer_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">provider_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">subscription_id</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">customer_email</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">plan_name</span>
+                            <span class="field-type regular">VARCHAR</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">amount</span>
+                            <span class="field-type regular">DECIMAL</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">billing_cycle</span>
+                            <span class="field-type regular">ENUM</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">status</span>
+                            <span class="field-type regular">ENUM</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">started_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">ended_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table fade-in">
+                    <div class="table-header">METRICS_CACHE</div>
+                    <div class="table-content">
+                        <div class="field">
+                            <span class="field-name">id</span>
+                            <span class="field-type primary">PK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">customer_id</span>
+                            <span class="field-type foreign">FK</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">metric_type</span>
+                            <span class="field-type regular">ENUM</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">metric_value</span>
+                            <span class="field-type regular">DECIMAL</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">calculation_date</span>
+                            <span class="field-type regular">DATE</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">period_start</span>
+                            <span class="field-type regular">DATE</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">period_end</span>
+                            <span class="field-type regular">DATE</span>
+                        </div>
+                        <div class="field">
+                            <span class="field-name">created_at</span>
+                            <span class="field-type regular">TIMESTAMP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relationships">
+                <div class="relationship">ALL_RAW_TABLES → NORMALIZED_TRANSACTIONS</div>
+                <div class="relationship">NORMALIZED_TRANSACTIONS (N:1) SUBSCRIPTIONS</div>
+                <div class="relationship">CUSTOMERS (1:N) METRICS_CACHE</div>
+            </div>
+            
+            <div class="notes">
+                <h4>Key Design Notes:</h4>
+                <ul>
+                    <li><strong>Provider Isolation:</strong> Each payment provider has its own raw transaction table with provider-specific fields</li>
+                    <li><strong>Unified Schema:</strong> All raw data is normalized into a single NORMALIZED_TRANSACTIONS table</li>
+                    <li><strong>Source Tracking:</strong> The source_table and source_id fields track which raw record each normalized transaction came from</li>
+                    <li><strong>Metrics Caching:</strong> Pre-calculated metrics are cached for fast dashboard loading</li>
+                    <li><strong>Audit Trail:</strong> Raw data is preserved for reprocessing and compliance</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add staggered fade-in animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.fade-in');
+            elements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
