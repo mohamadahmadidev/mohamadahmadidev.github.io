@@ -1,460 +1,614 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive SaaS Metrics System Design V3</title>
+    <title>Mohammad Sedigh Ahmadi - Senior Software Engineer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.6s ease-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                        'scale-in': 'scaleIn 0.5s ease-out',
+                        'gradient': 'gradient 8s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --line-color: #d1d5db;
-            --line-color-active: #3b82f6;
-            --line-color-success: #22c55e;
-            --line-color-fail: #ef4444;
-            --line-color-req: #f97316;
-            --box-bg: #ffffff;
-            --box-border: #e5e7eb;
-            --box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .flow-node {
-            background-color: var(--box-bg);
-            border: 1px solid var(--box-border);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: var(--box-shadow);
-            transition: all 0.3s ease-in-out;
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .flow-node.active { border-color: var(--line-color-active); transform: scale(1.05); }
-        .flow-node.success { border-color: var(--line-color-success); }
-        .flow-node.fail { border-color: var(--line-color-fail); }
-        .flow-node.req { border-color: var(--line-color-req); }
-        
-        .arrow-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .arrow-line {
-            stroke-width: 2;
-            stroke: var(--line-color);
-            transition: stroke 0.5s ease;
-        }
-        .arrow-line.active { stroke: var(--line-color-active); }
-        .arrow-line.success { stroke: var(--line-color-success); }
-        .arrow-line.fail { stroke: var(--line-color-fail); }
-        .arrow-line.req { stroke: var(--line-color-req); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
-        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            width: 90%;
-            max-width: 500px;
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .modal-overlay.visible .modal-content { transform: scale(1); }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dark-glass {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            filter: blur(1px);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .tech-grid {
+            background-image:
+                linear-gradient(rgba(102, 126, 234, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(102, 126, 234, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-x-hidden">
+    <!-- Floating Orbs Background -->
+    <div class="floating-orb w-72 h-72 top-10 -left-36" style="animation-delay: 0s;"></div>
+    <div class="floating-orb w-96 h-96 top-1/3 -right-48" style="animation-delay: 2s;"></div>
+    <div class="floating-orb w-64 h-64 bottom-1/4 left-1/4" style="animation-delay: 4s;"></div>
 
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold tracking-tight">SaaS Metrics System - V3</h1>
-            <p class="mt-2 text-lg text-gray-600">Now with final data visualization!</p>
-        </div>
-
-        <!-- Section 1: Data Sources -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-bold text-center mb-4">1. Data Sources (Push)</h2>
-            <p class="text-center text-gray-500 mb-6">Simulate incoming data from payment providers.</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button onclick="openModal('stripe')" class="p-4 border rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-3">
-                    <svg class="w-8 h-8" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M42 24C42 33.9411 33.9411 42 24 42C14.0589 42 6 33.9411 6 24C6 14.0589 14.0589 6 24 6C33.9411 6 42 14.0589 42 24Z" fill="#635BFF"></path><path d="M33.6667 19.3333C33.6667 18.2288 32.7712 17.3333 31.6667 17.3333H20.5C19.3954 17.3333 18.5 18.2288 18.5 19.3333V28.6667C18.5 29.7712 19.3954 30.6667 20.5 30.6667H31.6667C32.7712 30.6667 33.6667 29.7712 33.6667 28.6667V19.3333Z" fill="white"></path><path d="M25.1667 15.3333H14C12.8954 15.3333 12 16.2288 12 17.3333V26.6667C12 27.7712 12.8954 28.6667 14 28.6667H16.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                    <span class="font-semibold text-lg">Stripe</span>
-                </button>
-                <button onclick="openModal('paypal')" class="p-4 border rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-3">
-                     <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.313 4.133L6.48 18.428c.18.82.93 1.39 1.773 1.39h3.428c.69 0 1.31-.43 1.57-1.08l.73-1.84 2.14-5.363c.22-.552.75-1.28 1.52-1.28h.7c.69 0 1.31-.43 1.57-1.08l.9-2.094c.18-.41.01-.89-.39-1.08l-1.5-.7c-.4-.18-.89.01-1.08.4L19.23 6.4c-.18.41-.56.66-.99.66h-3.4c-.69 0-1.31.43-1.57 1.08l-.73 1.84-2.14 5.363c-.22.552-.75-1.28-1.52-1.28h-.7c-.69 0-1.31-.43-1.57-1.08l-.9-2.094c-.18-.41-.01-.89.39-1.08l1.5-.7c.4-.18.89.01 1.08.4l.39.9c.18.41.56.66.99.66h.7c.69 0 1.31-.43 1.57-1.08l.73-1.84 2.14-5.363c.22-.552.75-1.28 1.52-1.28h.7c.69 0 1.31-.43 1.57-1.08l.9-2.094c.18-.41.01-.89-.39-1.08l-1.5-.7c-.4-.18-.89.01-1.08.4l-.39.9c-.18.41-.56.66-.99.66h-3.4c-.69 0-1.31.43-1.57 1.08l-.73 1.84L6.48 4.133z" fill="#0070BA"/></svg>
-                    <span class="font-semibold text-lg">PayPal</span>
-                </button>
-                <button onclick="openModal('square')" class="p-4 border rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-3">
-                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.1 2.9 22 4 22H20C21.1 22 22 21.1 22 20V4C22 2.9 21.1 2 20 2ZM18 18H6V6H18V18Z" fill="#006AFF"></path><path d="M14 10H10V14H14V10Z" fill="#006AFF"></path></svg>
-                    <span class="font-semibold text-lg">Square</span>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold gradient-text">Mohammad</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="hover:text-purple-300 transition-colors duration-300">Home</a>
+                    <a href="#about" class="hover:text-purple-300 transition-colors duration-300">About</a>
+                    <a href="#experience" class="hover:text-purple-300 transition-colors duration-300">Experience</a>
+                    <a href="#skills" class="hover:text-purple-300 transition-colors duration-300">Skills</a>
+                    <a href="#contact" class="hover:text-purple-300 transition-colors duration-300">Contact</a>
+                </div>
+                <button class="md:hidden text-white">
+                    <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
         </div>
+    </nav>
 
-        <!-- Section 2: Processing Pipeline -->
-        <div class="relative grid grid-cols-3 gap-x-16 gap-y-24 p-8" id="pipeline">
-            <svg id="pipeline-arrows" class="arrow-canvas"></svg>
-            <!-- Gateways -->
-            <div id="stripe-gateway" class="flow-node h-28"><h3>Stripe Gateway</h3></div>
-            <div id="paypal-gateway" class="flow-node h-28"><h3>PayPal Gateway</h3></div>
-            <div id="square-gateway" class="flow-node h-28"><h3>Square Gateway</h3></div>
-            <!-- Ingestion -->
-            <div id="stripe-ingestion" class="flow-node h-28"><h3>Stripe Ingestion</h3></div>
-            <div id="paypal-ingestion" class="flow-node h-28"><h3>PayPal Ingestion</h3></div>
-            <div id="square-ingestion" class="flow-node h-28"><h3>Square Ingestion</h3></div>
-            <!-- Normalization -->
-            <div id="stripe-normalizer" class="flow-node h-28"><h3>Stripe Normalizer</h3></div>
-            <div id="paypal-normalizer" class="flow-node h-28"><h3>PayPal Normalizer</h3></div>
-            <div id="square-normalizer" class="flow-node h-28"><h3>Square Normalizer</h3></div>
-            <!-- Unified Store -->
-            <div id="unified-store" class="flow-node h-36 col-span-3">
-                <h3>Unified Normalized Store</h3>
-                <p class="text-gray-500">Transactions: <span id="txn-count" class="font-bold">0</span></p>
-            </div>
-        </div>
-        
-        <!-- Section 3: Metrics & Dashboard -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
-            <h2 class="text-xl font-bold text-center mb-4">2. Metrics Request (Pull)</h2>
-            <div class="relative grid grid-cols-3 gap-x-16 gap-y-20 p-8 items-center" id="dashboard-area">
-                <svg id="dashboard-arrows" class="arrow-canvas"></svg>
-                <div id="metrics-calculator" class="flow-node h-28"><h3>Metrics Calculator</h3></div>
-                <div id="metrics-cache" class="flow-node h-28"><h3>Metrics Cache (Redis)</h3></div>
-                <div id="api-service" class="flow-node h-28"><h3>API Service</h3></div>
-                <div id="dashboard" class="flow-node h-auto col-span-3 p-4">
-                    <h3>Dashboard</h3>
-                    <div class="w-full h-64 mt-4 bg-gray-50 rounded-lg flex items-center justify-center" id="chart-container">
-                        <canvas id="metrics-chart" class="hidden"></canvas>
-                        <div id="dashboard-status" class="text-gray-500 text-center">Waiting for request...</div>
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center relative tech-grid pt-24">
+        <div class="container mx-auto px-6 text-center animate-fade-in">
+            <div class="max-w-4xl mx-auto">
+                <!-- Profile Image -->
+                <div class="mb-8 animate-scale-in">
+                    <div class="w-48 h-48 mx-auto rounded-full glass p-1 animate-float">
+                        <div class="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-6xl font-bold">
+                            M
+                        </div>
                     </div>
-                    <button id="request-metrics-btn" class="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:bg-gray-400">Request Metrics</button>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal -->
-    <div id="modal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 class="text-2xl font-bold mb-4" id="modal-title">Send Data</h2>
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Simulate Validation Errors:</label>
-                <div class="space-y-2">
-                    <div class="flex items-center"><input id="fail-auth" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><label for="fail-auth" class="ml-2 block text-sm text-gray-900">Invalid Signature / Token</label></div>
-                    <div class="flex items-center"><input id="fail-rate-limit" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><label for="fail-rate-limit" class="ml-2 block text-sm text-gray-900">Rate Limit Exceeded</label></div>
+                <h1 class="text-6xl md:text-8xl font-bold mb-6 animate-slide-up">
+                    <span class="gradient-text">Mohammad</span><br>
+                    <span class="text-white">Sedigh Ahmadi</span>
+                </h1>
+
+                <p class="text-2xl md:text-3xl mb-8 text-purple-200 animate-slide-up" style="animation-delay: 0.2s;">
+                    Senior Software Engineer
+                </p>
+
+                <p class="text-lg md:text-xl mb-12 text-gray-300 max-w-3xl mx-auto leading-relaxed animate-slide-up" style="animation-delay: 0.4s;">
+                    As a responsible global citizen, I care deeply about people and the environment.
+                    I believe technology is a powerful tool to improve daily life and make the world more efficient and secure.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-6 justify-center animate-slide-up" style="animation-delay: 0.6s;">
+                    <a href="#contact" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full font-semibold hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300">
+                        Get In Touch
+                    </a>
+                    <a href="#experience" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/20 transition-all duration-300">
+                        View My Work
+                    </a>
+                </div>
+
+                <!-- Social Links -->
+                <div class="flex justify-center space-x-6 mt-12 animate-slide-up" style="animation-delay: 0.8s;">
+                    <a href="https://linkedin.com/in/mohamadsdiq" target="_blank" class="w-12 h-12 glass rounded-full flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all duration-300">
+                        <i class="fab fa-linkedin text-xl"></i>
+                    </a>
+                    <a href="https://medium.com/@mohamadsdiq" target="_blank" class="w-12 h-12 glass rounded-full flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all duration-300">
+                        <i class="fab fa-medium text-xl"></i>
+                    </a>
+                    <a href="mailto:mohamad.dev.ror@gmail.com" class="w-12 h-12 glass rounded-full flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all duration-300">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </a>
                 </div>
             </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cancel</button>
-                <button id="modal-submit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Send Data Packet</button>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-5xl font-bold text-center mb-16 gradient-text">About Me</h2>
+
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <div class="dark-glass p-8 rounded-2xl">
+                            <h3 class="text-2xl font-bold mb-4 text-purple-300">Background</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                I'm especially interested in how tech connects with social issues and contributes to real, positive change.
+                                With a strong foundation in Ruby on Rails and Vue.js, I've helped build complex HR and payroll platforms
+                                that serve real business needs.
+                            </p>
+                        </div>
+
+                        <div class="dark-glass p-8 rounded-2xl">
+                            <h3 class="text-2xl font-bold mb-4 text-purple-300">Location & Languages</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt text-purple-400 mr-3"></i>
+                                    <span>Berlin, Germany</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-purple-500/20 rounded-full text-sm">English (Professional)</span>
+                                    <span class="px-3 py-1 bg-purple-500/20 rounded-full text-sm">Kurdish (Native)</span>
+                                    <span class="px-3 py-1 bg-purple-500/20 rounded-full text-sm">Persian (Native)</span>
+                                    <span class="px-3 py-1 bg-purple-500/20 rounded-full text-sm">Arabic (Professional)</span>
+                                    <span class="px-3 py-1 bg-purple-500/20 rounded-full text-sm">Deutsch (Elementary)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="dark-glass p-8 rounded-2xl">
+                            <h3 class="text-2xl font-bold mb-6 text-purple-300">Interests</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="text-center p-3 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg">
+                                    <i class="fas fa-brain text-purple-400 text-xl mb-2"></i>
+                                    <p class="text-sm">AI & Cognitive Science</p>
+                                </div>
+                                <div class="text-center p-3 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg">
+                                    <i class="fas fa-users text-purple-400 text-xl mb-2"></i>
+                                    <p class="text-sm">Human-Centered Tech</p>
+                                </div>
+                                <div class="text-center p-3 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg">
+                                    <i class="fas fa-heart text-purple-400 text-xl mb-2"></i>
+                                    <p class="text-sm">Refugee Support</p>
+                                </div>
+                                <div class="text-center p-3 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg">
+                                    <i class="fas fa-leaf text-purple-400 text-xl mb-2"></i>
+                                    <p class="text-sm">Rural Philosophy</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dark-glass p-8 rounded-2xl">
+                            <h3 class="text-2xl font-bold mb-4 text-purple-300">Core Values</h3>
+                            <ul class="space-y-2 text-gray-300">
+                                <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i>Emotionally aware and empathetic</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i>Purpose-driven and value-oriented</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i>Naturally curious and detail-oriented</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i>Accountable, take full ownership</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-5xl font-bold text-center mb-16 gradient-text">Experience</h2>
+
+                <div class="space-y-8">
+                    <!-- Taxmaro Experience -->
+                    <div class="dark-glass p-8 rounded-2xl hover:bg-white/5 transition-all duration-300 group">
+                        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-purple-300 group-hover:text-purple-200 transition-colors">Senior Software Engineer</h3>
+                                <p class="text-xl text-blue-300 mb-2">Taxmaro</p>
+                                <p class="text-gray-400">04/2020 - Present • Berlin, Germany</p>
+                            </div>
+                            <div class="mt-4 lg:mt-0">
+                                <span class="px-4 py-2 bg-green-500/20 text-green-300 rounded-full text-sm">Current Position</span>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            An all-in-one digital platform for HR and payroll management, officially partnered with DATEV as an interface partner.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold text-purple-300 mb-3">Key Achievements</h4>
+                                <ul class="space-y-2 text-gray-300">
+                                    <li class="flex items-start"><i class="fas fa-rocket text-blue-400 mr-3 mt-1"></i>Helped initiate and develop complex HR platform from scratch</li>
+                                    <li class="flex items-start"><i class="fas fa-users text-blue-400 mr-3 mt-1"></i>Supported junior teammates and temporarily led tech team</li>
+                                    <li class="flex items-start"><i class="fas fa-globe text-blue-400 mr-3 mt-1"></i>Relocated to Germany after earning company-sponsored offer</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-purple-300 mb-3">Technical Contributions</h4>
+                                <ul class="space-y-2 text-gray-300">
+                                    <li class="flex items-start"><i class="fas fa-cog text-blue-400 mr-3 mt-1"></i>Built internal workflow automation with real-time updates</li>
+                                    <li class="flex items-start"><i class="fas fa-link text-blue-400 mr-3 mt-1"></i>Led DATEV HR Exchange integration development</li>
+                                    <li class="flex items-start"><i class="fas fa-shield-alt text-blue-400 mr-3 mt-1"></i>Ensured compliance with German labor and tax laws</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buzzjective Experience -->
+                    <div class="dark-glass p-8 rounded-2xl hover:bg-white/5 transition-all duration-300 group">
+                        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-purple-300 group-hover:text-purple-200 transition-colors">Full Stack Web Developer</h3>
+                                <p class="text-xl text-blue-300 mb-2">Buzzjective (DataGuard)</p>
+                                <p class="text-gray-400">06/2019 - 04/2020 • Berlin, Germany - Remote</p>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Served DataGuard company through Buzzjective. DataGuard is a SaaS platform developing a service for digital security and compliance management.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold text-purple-300 mb-3">Growth & Learning</h4>
+                                <ul class="space-y-2 text-gray-300">
+                                    <li class="flex items-start"><i class="fas fa-exchange-alt text-green-400 mr-3 mt-1"></i>Transitioned from front-end to back-end development</li>
+                                    <li class="flex items-start"><i class="fas fa-graduation-cap text-green-400 mr-3 mt-1"></i>Gained hands-on Ruby on Rails experience through mentorship</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-purple-300 mb-3">Technical Work</h4>
+                                <ul class="space-y-2 text-gray-300">
+                                    <li class="flex items-start"><i class="fas fa-plus text-green-400 mr-3 mt-1"></i>Contributed to new features and third-party integrations</li>
+                                    <li class="flex items-start"><i class="fas fa-book text-green-400 mr-3 mt-1"></i>Proactively explored learning resources and built personal projects</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-5xl font-bold text-center mb-16 gradient-text">Skills & Technologies</h2>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Backend Technologies -->
+                    <div class="dark-glass p-8 rounded-2xl">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-server text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-purple-300">Backend</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span>Ruby on Rails</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-full h-full bg-gradient-to-r from-red-500 to-pink-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Ruby</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-full h-full bg-gradient-to-r from-red-500 to-pink-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Sinatra</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-4/5 h-full bg-gradient-to-r from-red-500 to-pink-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>PostgreSQL</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-4/5 h-full bg-gradient-to-r from-red-500 to-pink-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Frontend Technologies -->
+                    <div class="dark-glass p-8 rounded-2xl">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-laptop-code text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-purple-300">Frontend</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span>Vue.js</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>JavaScript</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-full h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Hotwire Turbo</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-4/5 h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Webpacker</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-3/4 h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DevOps & Tools -->
+                    <div class="dark-glass p-8 rounded-2xl">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-tools text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-purple-300">DevOps & Tools</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span>Docker</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-4/5 h-full bg-gradient-to-r from-green-500 to-teal-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>GitLab CI</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-4/5 h-full bg-gradient-to-r from-green-500 to-teal-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Redis</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-3/4 h-full bg-gradient-to-r from-green-500 to-teal-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Sidekiq</span>
+                                <div class="w-20 h-2 bg-gray-700 rounded-full">
+                                    <div class="w-4/5 h-full bg-gradient-to-r from-green-500 to-teal-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Skills -->
+                <div class="mt-12 dark-glass p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-center mb-8 text-purple-300">Additional Expertise</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-gem text-red-400 text-2xl mb-2"></i>
+                            <p class="text-sm">RSpec</p>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-shield-alt text-blue-400 text-2xl mb-2"></i>
+                            <p class="text-sm">Devise</p>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-lock text-green-400 text-2xl mb-2"></i>
+                            <p class="text-sm">JWT</p>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-code text-purple-400 text-2xl mb-2"></i>
+                            <p class="text-sm">TDD</p>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-eye text-yellow-400 text-2xl mb-2"></i>
+                            <p class="text-sm">Skylight</p>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-bug text-orange-400 text-2xl mb-2"></i>
+                            <p class="text-sm">Sentry</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-5xl font-bold mb-8 gradient-text">Let's Connect</h2>
+                <p class="text-xl text-gray-300 mb-12">
+                    Ready to build something amazing together? I'm always open to discussing new opportunities and interesting projects.
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-8 mb-12">
+                    <a href="mailto:mohamad.dev.ror@gmail.com" class="dark-glass p-8 rounded-2xl hover:bg-white/10 transition-all duration-300 group">
+                        <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-envelope text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Email</h3>
+                        <p class="text-gray-400">mohamad.dev.ror@gmail.com</p>
+                    </a>
+
+                    <a href="https://linkedin.com/in/mohamadsdiq" target="_blank" class="dark-glass p-8 rounded-2xl hover:bg-white/10 transition-all duration-300 group">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fab fa-linkedin text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">LinkedIn</h3>
+                        <p class="text-gray-400">Connect with me</p>
+                    </a>
+
+                    <a href="tel:+4917629740073" class="dark-glass p-8 rounded-2xl hover:bg-white/10 transition-all duration-300 group">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-phone text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Phone</h3>
+                        <p class="text-gray-400">+49 176 29740073</p>
+                    </a>
+                </div>
+
+                <div class="dark-glass p-8 rounded-2xl">
+                    <div class="flex items-center justify-center mb-4">
+                        <i class="fas fa-map-marker-alt text-purple-400 text-2xl mr-3"></i>
+                        <span class="text-xl">Based in Berlin, Germany</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Available for remote work and local collaborations
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/10">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center space-x-6 mb-6">
+                <a href="https://linkedin.com/in/mohamadsdiq" target="_blank" class="w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://medium.com/@mohamadsdiq" target="_blank" class="w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300">
+                    <i class="fab fa-medium"></i>
+                </a>
+                <a href="mailto:mohamad.dev.ror@gmail.com" class="w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/20 transition-all duration-300">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
+            <p class="text-gray-400">
+                © 2025 Mohammad Sedigh Ahmadi. Crafted with passion and purpose.
+            </p>
+        </div>
+    </footer>
+
     <script>
-        const state = {
-            transactions: [],
-            isProcessing: false,
-            currentProvider: null,
-            chartInstance: null,
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar background on scroll
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 100) {
+                navbar.style.background = 'rgba(0, 0, 0, 0.5)';
+                navbar.style.backdropFilter = 'blur(20px)';
+            } else {
+                navbar.style.background = 'rgba(255, 255, 255, 0.1)';
+                navbar.style.backdropFilter = 'blur(10px)';
+            }
+        });
+
+        // Add intersection observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
         };
 
-        const nodes = {
-            txnCounter: document.getElementById('txn-count'),
-            requestBtn: document.getElementById('request-metrics-btn'),
-            dashboardStatus: document.getElementById('dashboard-status'),
-            chartCanvas: document.getElementById('metrics-chart'),
-        };
-
-        // --- MODAL LOGIC ---
-        const modal = document.getElementById('modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalSubmitBtn = document.getElementById('modal-submit-btn');
-        const failAuthCheck = document.getElementById('fail-auth');
-        const failRateLimitCheck = document.getElementById('fail-rate-limit');
-
-        function openModal(provider) {
-            if (state.isProcessing) return;
-            state.currentProvider = provider;
-            modalTitle.textContent = `Send Data from ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
-            modal.classList.add('visible');
-            modalSubmitBtn.onclick = () => handleDataSend();
-        }
-
-        function closeModal() {
-            modal.classList.remove('visible');
-            failAuthCheck.checked = false;
-            failRateLimitCheck.checked = false;
-        }
-
-        function handleDataSend() {
-            const options = {
-                failAuth: failAuthCheck.checked,
-                failRateLimit: failRateLimitCheck.checked,
-            };
-            closeModal();
-            startDataIngestion(state.currentProvider, options);
-        }
-
-        // --- ANIMATION LOGIC ---
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        async function flashElement(elementId, status, duration = 1000) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-            element.classList.add(status);
-            await sleep(duration);
-            element.classList.remove(status, 'active', 'req', 'success', 'fail');
-        }
-
-        async function startDataIngestion(provider, options) {
-            if (state.isProcessing) return;
-            state.isProcessing = true;
-
-            const gatewayNodeId = `${provider}-gateway`;
-            const ingestionNodeId = `${provider}-ingestion`;
-            const normalizerNodeId = `${provider}-normalizer`;
-            const unifiedStoreNodeId = 'unified-store';
-            const gatewayNode = document.getElementById(gatewayNodeId);
-
-            await flashElement(gatewayNodeId, 'active', 500);
-
-            if (options.failAuth || options.failRateLimit) {
-                const reason = options.failAuth ? 'Authentication Failed' : 'Rate Limit Exceeded';
-                gatewayNode.querySelector('h3').insertAdjacentHTML('afterend', `<p class="text-red-500 text-xs font-bold">${reason}</p>`);
-                await flashElement(gatewayNodeId, 'fail', 2000);
-                gatewayNode.querySelector('p').remove();
-                state.isProcessing = false;
-                return;
-            }
-            await flashElement(gatewayNodeId, 'success', 500);
-            await flashElement(`arrow-${provider}-gateway-ingestion`, 'success', 500);
-            await flashElement(ingestionNodeId, 'success', 500);
-            await flashElement(`arrow-${provider}-ingestion-normalizer`, 'success', 500);
-            await flashElement(normalizerNodeId, 'success', 500);
-            await flashElement(`arrow-${provider}-normalizer-unified`, 'success', 500);
-            await flashElement(unifiedStoreNodeId, 'active', 500);
-
-            // Add fake transaction data
-            const date = new Date();
-            date.setMonth(date.getMonth() - Math.floor(Math.random() * 6));
-            state.transactions.push({
-                provider,
-                amount: 20 + Math.random() * 150,
-                date: date
-            });
-            nodes.txnCounter.textContent = state.transactions.length;
-            
-            await flashElement(unifiedStoreNodeId, 'success', 1000);
-            document.querySelectorAll(`#pipeline-arrows .arrow-line`).forEach(l => l.classList.remove('success'));
-            state.isProcessing = false;
-        }
-
-        async function handleMetricsRequest() {
-            if (state.isProcessing || state.transactions.length === 0) {
-                if (state.transactions.length === 0) {
-                    nodes.dashboardStatus.textContent = 'No data to process! Please send data first.';
-                    nodes.dashboardStatus.classList.add('text-red-500');
-                    await sleep(2000);
-                    nodes.dashboardStatus.textContent = 'Waiting for request...';
-                    nodes.dashboardStatus.classList.remove('text-red-500');
-                }
-                return;
-            }
-            state.isProcessing = true;
-            nodes.requestBtn.disabled = true;
-
-            const dashboardNodeId = 'dashboard';
-            const apiNodeId = 'api-service';
-            const cacheNodeId = 'metrics-cache';
-            const calculatorNodeId = 'metrics-calculator';
-
-            nodes.dashboardStatus.textContent = 'Requesting metrics...';
-            nodes.chartCanvas.classList.add('hidden');
-            nodes.dashboardStatus.classList.remove('hidden');
-            if(state.chartInstance) state.chartInstance.destroy();
-
-            await flashElement(dashboardNodeId, 'req', 500);
-            await flashElement('arrow-dashboard-api', 'req', 500);
-            await flashElement(apiNodeId, 'req', 500);
-            nodes.dashboardStatus.textContent = 'Checking cache...';
-            await flashElement('arrow-api-cache', 'req', 500);
-            await flashElement(cacheNodeId, 'req', 1000);
-            nodes.dashboardStatus.textContent = 'Cache miss! Calculating metrics...';
-            await flashElement('arrow-cache-calculator', 'req', 500);
-            await flashElement(calculatorNodeId, 'req', 1500);
-            await flashElement('unified-store', 'req', 1000);
-            nodes.dashboardStatus.textContent = 'Populating cache...';
-            await flashElement(calculatorNodeId, 'success', 500);
-            await flashElement('arrow-cache-calculator', 'success', 500);
-            await flashElement(cacheNodeId, 'success', 1000);
-            nodes.dashboardStatus.textContent = 'Serving data from API...';
-            await flashElement('arrow-api-cache', 'success', 500);
-            await flashElement(apiNodeId, 'success', 1000);
-            nodes.dashboardStatus.textContent = 'Metrics Loaded! Rendering chart...';
-            await flashElement('arrow-dashboard-api', 'success', 500);
-            await flashElement(dashboardNodeId, 'success', 1500);
-
-            renderMetricsChart();
-
-            document.querySelectorAll(`.arrow-line`).forEach(l => l.classList.remove('req', 'success'));
-            state.isProcessing = false;
-            nodes.requestBtn.disabled = false;
-        }
-
-        function renderMetricsChart() {
-            nodes.dashboardStatus.classList.add('hidden');
-            nodes.chartCanvas.classList.remove('hidden');
-            
-            const data = {
-                labels: [],
-                datasets: [{
-                    label: 'Monthly Revenue',
-                    data: [],
-                    fill: false,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            };
-
-            const monthlyTotals = {};
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            
-            // Initialize last 6 months
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date();
-                d.setMonth(d.getMonth() - i);
-                const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
-                const monthLabel = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-                if (!monthlyTotals[monthKey]) {
-                    monthlyTotals[monthKey] = 0;
-                    data.labels.push(monthLabel);
-                }
-            }
-            
-            state.transactions.forEach(t => {
-                const monthKey = `${t.date.getFullYear()}-${t.date.getMonth()}`;
-                if (monthlyTotals[monthKey] !== undefined) {
-                    monthlyTotals[monthKey] += t.amount;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
                 }
             });
+        }, observerOptions);
 
-            data.datasets[0].data = Object.values(monthlyTotals);
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(section);
+        });
 
-            if (state.chartInstance) {
-                state.chartInstance.destroy();
-            }
-
-            state.chartInstance = new Chart(nodes.chartCanvas, {
-                type: 'line',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
-                }
+        // Add some interactive hover effects
+        document.querySelectorAll('.dark-glass, .glass').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 20px 40px rgba(102, 126, 234, 0.1)';
             });
-        }
-        
-        nodes.requestBtn.addEventListener('click', handleMetricsRequest);
 
-        // --- ARROW DRAWING LOGIC ---
-        function drawArrows() {
-            const pipelineSvg = document.getElementById('pipeline-arrows');
-            const dashboardSvg = document.getElementById('dashboard-arrows');
-            pipelineSvg.innerHTML = ''; // Clear previous arrows
-            dashboardSvg.innerHTML = ''; // Clear previous arrows
-
-            const defs = `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="currentColor" /></marker><marker id="arrowhead-req" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto" class="text-orange-500"><polygon points="0 0, 10 3.5, 0 7" fill="currentColor" /></marker></defs>`;
-            pipelineSvg.insertAdjacentHTML('beforeend', defs);
-            dashboardSvg.insertAdjacentHTML('beforeend', defs);
-
-            const connections = [
-                { start: 'stripe-gateway', end: 'stripe-ingestion', parent: 'pipeline-arrows', id: 'arrow-stripe-gateway-ingestion' },
-                { start: 'paypal-gateway', end: 'paypal-ingestion', parent: 'pipeline-arrows', id: 'arrow-paypal-gateway-ingestion' },
-                { start: 'square-gateway', end: 'square-ingestion', parent: 'pipeline-arrows', id: 'arrow-square-gateway-ingestion' },
-                { start: 'stripe-ingestion', end: 'stripe-normalizer', parent: 'pipeline-arrows', id: 'arrow-stripe-ingestion-normalizer' },
-                { start: 'paypal-ingestion', end: 'paypal-normalizer', parent: 'pipeline-arrows', id: 'arrow-paypal-ingestion-normalizer' },
-                { start: 'square-ingestion', end: 'square-normalizer', parent: 'pipeline-arrows', id: 'arrow-square-ingestion-normalizer' },
-                { start: 'stripe-normalizer', end: 'unified-store', parent: 'pipeline-arrows', id: 'arrow-stripe-normalizer-unified' },
-                { start: 'paypal-normalizer', end: 'unified-store', parent: 'pipeline-arrows', id: 'arrow-paypal-normalizer-unified' },
-                { start: 'square-normalizer', end: 'unified-store', parent: 'pipeline-arrows', id: 'arrow-square-normalizer-unified' },
-                
-                { start: 'dashboard', end: 'api-service', parent: 'dashboard-arrows', id: 'arrow-dashboard-api', marker: 'url(#arrowhead-req)', reversed: true },
-                { start: 'api-service', end: 'metrics-cache', parent: 'dashboard-arrows', id: 'arrow-api-cache', marker: 'url(#arrowhead-req)' },
-                { start: 'metrics-cache', end: 'metrics-calculator', parent: 'dashboard-arrows', id: 'arrow-cache-calculator', marker: 'url(#arrowhead-req)' },
-            ];
-
-            connections.forEach(conn => {
-                const startNode = document.getElementById(conn.start);
-                const endNode = document.getElementById(conn.end);
-                const parentSvg = document.getElementById(conn.parent);
-                if (!startNode || !endNode || !parentSvg) return;
-
-                const parentRect = parentSvg.getBoundingClientRect();
-                const startRect = startNode.getBoundingClientRect();
-                const endRect = endNode.getBoundingClientRect();
-
-                const startX = startRect.left + startRect.width / 2 - parentRect.left;
-                const endX = endRect.left + endRect.width / 2 - parentRect.left;
-                let startY, endY;
-                
-                if (conn.reversed) {
-                    startY = startRect.top - parentRect.top;
-                    endY = endRect.top + endRect.height - parentRect.top;
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    const d = `M ${startX},${startY} C ${startX},${startY - 50} ${endX},${endY + 50} ${endX},${endY}`;
-                    line.setAttribute('d', d);
-                    line.setAttribute('fill', 'none');
-                    line.setAttribute('class', 'arrow-line');
-                    line.setAttribute('id', conn.id);
-                    line.setAttribute('marker-end', conn.marker || 'url(#arrowhead)');
-                    parentSvg.appendChild(line);
-                } else {
-                    startY = startRect.top + startRect.height - parentRect.top;
-                    endY = endRect.top - parentRect.top;
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', startX);
-                    line.setAttribute('y1', startY);
-                    line.setAttribute('x2', endX);
-                    line.setAttribute('y2', endY - 10); // Offset for arrowhead
-                    line.setAttribute('class', 'arrow-line');
-                    line.setAttribute('id', conn.id);
-                    line.setAttribute('marker-end', conn.marker || 'url(#arrowhead)');
-                    parentSvg.appendChild(line);
-                }
+            element.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
             });
-        }
-
-        window.addEventListener('load', drawArrows);
-        window.addEventListener('resize', drawArrows);
-
+        });
     </script>
 </body>
 </html>
-
