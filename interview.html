@@ -297,13 +297,102 @@
                                             <span class="text-gray-300 text-sm ml-4">customer_metadata_builder.rb</span>
                                         </div>
                                     </div>
-                                    <pre class="p-6 text-sm text-gray-100 overflow-x-auto"><code># Ruby code will be inserted here later
-# This is a placeholder for the CustomerMetadataBuilder class
-# The actual implementation will be added when provided
+                                    <pre class="p-6 text-sm text-gray-100 overflow-x-auto"><code>
+                                      class CustomerMetadataBuilder
+  # Define metadata keys as constants for easy reference and maintainability
+  # This allows us to change the keys in one place if needed, without affecting the rest of the code.
+  # And avoids typo errors in string literals throughout the code.
 
-class CustomerMetadataBuilder
-  # Implementation details to be added...
-end</code></pre>
+  METADATA_KEYS = {
+    account_owner: 'Account owner',
+    account_status: 'Account status',
+    active_customers: 'Active customers',
+    billing_systems: 'Billing system(s)',
+    import_status: 'Import status',
+    last_active: 'Last active',
+    revenue_recognition: 'Revenue recognition access',
+    sample_data: 'Sample Data Present?'
+  }.freeze
+
+  def initialize(account)
+    @account = account
+  end
+
+  def call
+    # using compact_blank to remove any nil or empty string or empty array values
+    # This is important to note that compact_blank is available in Rails 6.1 and later.
+    # If you're using an earlier version of Rails, you can use the approach used in the original code
+
+    {
+      METADATA_KEYS[:account_owner] => account_owner_info,
+      METADATA_KEYS[:account_status] => account_status,
+      METADATA_KEYS[:active_customers] => active_customer_count,
+      METADATA_KEYS[:billing_systems] => billing_systems,
+      METADATA_KEYS[:import_status] => import_status,
+      METADATA_KEYS[:last_active] => last_active,
+      METADATA_KEYS[:revenue_recognition] => revenue_recognition_enabled?,
+      METADATA_KEYS[:sample_data] => sample_data_present?
+    }.compact
+  end
+
+private
+
+  attr_reader :account
+
+  def account_owner_info
+    [owner&.name, owner&.email].compact_blank.join(' ')
+  end
+
+  def account_status
+    account_details&.account_status
+  end
+
+  def active_customer_count
+    account_details&.active_customer_count
+  end
+
+  def billing_systems
+    billing_connectors.presence || ['None configured']
+  end
+
+  def import_status
+    status = main_connector&.import_status
+    status&.humanize || 'Never imported'
+  end
+
+  def last_active
+    account.last_active_at
+  end
+
+  def revenue_recognition_enabled?
+    account.rev_rec_enabled?
+  end
+
+  def sample_data_present?
+    account.sample_data_present?
+  end
+
+  def owner
+    account&.owner
+  end
+
+  def account_details
+    account.account_details
+  end
+
+  def billing_connectors
+    account.billing_connectors
+  end
+
+  def main_connector
+    account.main_connector
+  end
+end
+
+def custom_params
+  CustomerMetadataBuilder.new(@account).call
+end
+                                    </code></pre>
                                 </div>
                             </div>
                         </div>
@@ -334,15 +423,327 @@ end</code></pre>
                                             <span class="text-gray-300 text-sm ml-4">customer_metadata_builder_spec.rb</span>
                                         </div>
                                     </div>
-                                    <pre class="p-6 text-sm text-gray-100 overflow-x-auto"><code># RSpec test code will be inserted here later
-# This is a placeholder for the comprehensive test suite
-# The actual tests will be added when provided
-
+                                    <pre class="p-6 text-sm text-gray-100 overflow-x-auto"><code>
 require 'rails_helper'
 
 RSpec.describe CustomerMetadataBuilder do
-  # Test implementation details to be added...
-end</code></pre>
+  let(:account) { double('Account') }
+  let(:owner) { double('Owner', name: 'John Doe', email: 'john@example.com') }
+  let(:account_details) { double('AccountDetails') }
+  let(:billing_connectors) { %w(Stripe PayPal) }
+  let(:main_connector) { double('MainConnector') }
+  let(:import_status) { double('ImportStatus') }
+
+  let(:builder) { described_class.new(account) }
+
+  before do
+    allow(account).to receive(:owner).and_return(owner)
+    allow(account).to receive(:account_details).and_return(account_details)
+    allow(account).to receive(:billing_connectors).and_return(billing_connectors)
+    allow(account).to receive(:main_connector).and_return(main_connector)
+    allow(account).to receive(:last_active_at).and_return(Time.current)
+    allow(account).to receive(:rev_rec_enabled?).and_return(true)
+    allow(account).to receive(:sample_data_present?).and_return(false)
+
+    allow(account_details).to receive(:account_status).and_return('active')
+    allow(account_details).to receive(:active_customer_count).and_return(42)
+
+    allow(main_connector).to receive(:import_status).and_return(import_status)
+    allow(import_status).to receive(:humanize).and_return('Completed')
+  end
+
+  describe '#call' do
+    it 'returns a hash with all metadata' do
+      result = builder.call
+
+      expect(result).to be_a(Hash)
+      expect(result.keys).to contain_exactly(
+        'Account owner',
+        'Account status',
+        'Active customers',
+        'Billing system(s)',
+        'Import status',
+        'Last active',
+        'Revenue recognition access',
+        'Sample Data Present?'
+      )
+    end
+
+    it 'excludes nil values from the result' do
+      allow(account_details).to receive(:account_status).and_return(nil)
+      allow(account_details).to receive(:active_customer_count).and_return(nil)
+
+      result = builder.call
+
+      expect(result).not_to have_key('Account status')
+      expect(result).not_to have_key('Active customers')
+      # Account owner will still be present because it returns empty string, not nil
+      expect(result).to have_key('Account owner')
+      expect(result['Account owner']).to eq('John Doe john@example.com')
+    end
+
+    it 'includes empty string values in the result' do
+      allow(account).to receive(:owner).and_return(nil)
+
+      result = builder.call
+
+      # Account owner returns empty string when owner is nil, so it's still included
+      expect(result).to have_key('Account owner')
+      expect(result['Account owner']).to eq('')
+    end
+
+    it 'includes non-nil values in the result' do
+      result = builder.call
+
+      expect(result['Account owner']).to eq('John Doe john@example.com')
+      expect(result['Account status']).to eq('active')
+      expect(result['Active customers']).to eq(42)
+    end
+  end
+
+  describe '#account_owner_info' do
+    context 'when owner is present' do
+      it 'returns formatted owner info' do
+        expect(builder.send(:account_owner_info)).to eq('John Doe john@example.com')
+      end
+    end
+
+    context 'when owner is nil' do
+      before { allow(account).to receive(:owner).and_return(nil) }
+
+      it 'returns empty string' do
+        expect(builder.send(:account_owner_info)).to eq('')
+      end
+    end
+
+    context 'when owner has nil name and email' do
+      let(:owner) { double('Owner', name: nil, email: nil) }
+
+      it 'returns empty string' do
+        expect(builder.send(:account_owner_info)).to eq('')
+      end
+    end
+
+    context 'when owner has only name' do
+      let(:owner) { double('Owner', name: 'John Doe', email: nil) }
+
+      it 'returns only the name' do
+        expect(builder.send(:account_owner_info)).to eq('John Doe')
+      end
+    end
+
+    context 'when owner has only email' do
+      let(:owner) { double('Owner', name: nil, email: 'john@example.com') }
+
+      it 'returns only the email' do
+        expect(builder.send(:account_owner_info)).to eq('john@example.com')
+      end
+    end
+  end
+
+  describe '#account_status' do
+    it 'returns account status from account_details' do
+      expect(builder.send(:account_status)).to eq('active')
+    end
+
+    context 'when account_details is nil' do
+      before { allow(account).to receive(:account_details).and_return(nil) }
+
+      it 'returns nil' do
+        expect(builder.send(:account_status)).to be_nil
+      end
+    end
+  end
+
+  describe '#active_customer_count' do
+    it 'returns active customer count from account_details' do
+      expect(builder.send(:active_customer_count)).to eq(42)
+    end
+
+    context 'when account_details is nil' do
+      before { allow(account).to receive(:account_details).and_return(nil) }
+
+      it 'returns nil' do
+        expect(builder.send(:active_customer_count)).to be_nil
+      end
+    end
+  end
+
+  describe '#billing_systems' do
+    context 'when billing_connectors are present' do
+      it 'returns the billing connectors' do
+        expect(builder.send(:billing_systems)).to eq(%w(Stripe PayPal))
+      end
+    end
+
+    context 'when billing_connectors are empty' do
+      before { allow(account).to receive(:billing_connectors).and_return([]) }
+
+      it 'returns default message' do
+        expect(builder.send(:billing_systems)).to eq(['None configured'])
+      end
+    end
+
+    context 'when billing_connectors are nil' do
+      before { allow(account).to receive(:billing_connectors).and_return(nil) }
+
+      it 'returns default message' do
+        expect(builder.send(:billing_systems)).to eq(['None configured'])
+      end
+    end
+  end
+
+  describe '#import_status' do
+    context 'when main_connector and import_status are present' do
+      it 'returns humanized import status' do
+        expect(builder.send(:import_status)).to eq('Completed')
+      end
+    end
+
+    context 'when main_connector is nil' do
+      before { allow(account).to receive(:main_connector).and_return(nil) }
+
+      it 'returns default message' do
+        expect(builder.send(:import_status)).to eq('Never imported')
+      end
+    end
+
+    context 'when import_status is nil' do
+      before { allow(main_connector).to receive(:import_status).and_return(nil) }
+
+      it 'returns default message' do
+        expect(builder.send(:import_status)).to eq('Never imported')
+      end
+    end
+
+    context 'when humanize returns nil' do
+      before { allow(import_status).to receive(:humanize).and_return(nil) }
+
+      it 'returns default message' do
+        expect(builder.send(:import_status)).to eq('Never imported')
+      end
+    end
+  end
+
+  describe '#last_active' do
+    let(:last_active_time) { 2.days.ago }
+
+    before { allow(account).to receive(:last_active_at).and_return(last_active_time) }
+
+    it 'returns the last active time' do
+      expect(builder.send(:last_active)).to eq(last_active_time)
+    end
+
+    context 'when last_active_at is nil' do
+      before { allow(account).to receive(:last_active_at).and_return(nil) }
+
+      it 'returns nil' do
+        expect(builder.send(:last_active)).to be_nil
+      end
+    end
+  end
+
+  describe '#revenue_recognition_enabled?' do
+    context 'when revenue recognition is enabled' do
+      before { allow(account).to receive(:rev_rec_enabled?).and_return(true) }
+
+      it 'returns true' do
+        expect(builder.send(:revenue_recognition_enabled?)).to be true
+      end
+    end
+
+    context 'when revenue recognition is disabled' do
+      before { allow(account).to receive(:rev_rec_enabled?).and_return(false) }
+
+      it 'returns false' do
+        expect(builder.send(:revenue_recognition_enabled?)).to be false
+      end
+    end
+  end
+
+  describe '#sample_data_present?' do
+    context 'when sample data is present' do
+      before { allow(account).to receive(:sample_data_present?).and_return(true) }
+
+      it 'returns true' do
+        expect(builder.send(:sample_data_present?)).to be true
+      end
+    end
+
+    context 'when sample data is not present' do
+      before { allow(account).to receive(:sample_data_present?).and_return(false) }
+
+      it 'returns false' do
+        expect(builder.send(:sample_data_present?)).to be false
+      end
+    end
+  end
+
+  describe 'constants' do
+    it 'has all expected metadata keys' do
+      expect(CustomerMetadataBuilder::METADATA_KEYS).to eq({
+                                                             account_owner: 'Account owner',
+                                                             account_status: 'Account status',
+                                                             active_customers: 'Active customers',
+                                                             billing_systems: 'Billing system(s)',
+                                                             import_status: 'Import status',
+                                                             last_active: 'Last active',
+                                                             revenue_recognition: 'Revenue recognition access',
+                                                             sample_data: 'Sample Data Present?'
+                                                           })
+    end
+
+    it 'has frozen constant' do
+      expect(CustomerMetadataBuilder::METADATA_KEYS).to be_frozen
+    end
+  end
+
+  # Integration test to make sure everything works together
+  describe 'integration' do
+    context 'with a fully populated account' do
+      it 'returns complete metadata' do
+        result = builder.call
+
+        expect(result).to eq({
+                               'Account owner' => 'John Doe john@example.com',
+                               'Account status' => 'active',
+                               'Active customers' => 42,
+                               'Billing system(s)' => %w(Stripe PayPal),
+                               'Import status' => 'Completed',
+                               'Last active' => account.last_active_at,
+                               'Revenue recognition access' => true,
+                               'Sample Data Present?' => false
+                             })
+      end
+    end
+
+    context 'with minimal account data' do
+      before do
+        allow(account).to receive(:owner).and_return(nil)
+        allow(account).to receive(:account_details).and_return(nil)
+        allow(account).to receive(:billing_connectors).and_return(nil)
+        allow(account).to receive(:main_connector).and_return(nil)
+        allow(account).to receive(:last_active_at).and_return(nil)
+        allow(account).to receive(:rev_rec_enabled?).and_return(false)
+        allow(account).to receive(:sample_data_present?).and_return(false)
+      end
+
+      it 'returns only non-nil values' do
+        result = builder.call
+
+        expect(result).to eq({
+                               'Account owner' => '',
+                               'Billing system(s)' => ['None configured'],
+                               'Import status' => 'Never imported',
+                               'Revenue recognition access' => false,
+                               'Sample Data Present?' => false
+                             })
+      end
+    end
+  end
+end
+
+                                    </code></pre>
                                 </div>
                             </div>
                         </div>
